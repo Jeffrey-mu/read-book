@@ -3,8 +3,8 @@ const { app, BrowserWindow } = require('electron')
 const createWindow = () => {
   const win = new BrowserWindow({
     icon: './icon.png',
-    width: 600,
-    height: 120,
+    width: 300,
+    height: 60,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
