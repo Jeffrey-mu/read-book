@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./icon.png">
+</head>
+<style>
+  ::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  .menu {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px;
+    z-index: 1000;
+  }
+
+  body {
+    overflow-y: auto;
+    background: transparent;
+  }
+
+  #file-content {
+    font-size: 14px;
+  }
+
+  * {
+    list-style: none;
+    transition: all .2s;
+  }
+
+  #custom-menu {
+    font-size: 12px;
+    line-height: 20px;
+  }
+
+  #custom-menu input {
+    height: 20px;
+    width: 70px;
+  }
+
+  .init_tools {
+    display: none;
+  }
+
+</style>
+
+<body oncontextmenu="return false;">
+  <div class="menu" id="custom-menu">
+    阅读章节
+    <input class="menu_input" id="menu_input" type="number">
+    设置字体
+    <input class="menu_input" id="menu_input_font_size" type="number" value="14">
+  </div>
+  <div class="init_tools">
+    <input type="file" id="file-input">
+    <button onclick="handleFileSelect()">开始阅读</button>
+  </div>
+  <br><br>
+  <div id="file-content"></div>
+  <script>
+    let chapters = []
+    const fileContentDiv = document.getElementById('file-content');
+    let page = 1;
+    document.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+      // 添加卷起高度
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+      var menu = document.getElementById("custom-menu");
+      menu.style.display = 'block';
+      menu.style.left = e.clientX + 'px';
+      menu.style.top = scrollTop + e.clientY + 'px';
+    });
+
+    document.addEventListener('click', function (e) {
+      console.log(e.target.className);
+      if (['menu_input', 'menu'].includes(e.target.className)) return
+      var menu = document.getElementById("custom-menu");
+      menu.style.display = 'none';
+    });
+    window.addEventListener('scroll', function () {
+      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+      const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight || window.innerHeight;
+      localStorage.setItem('read_book_page', page)
+      if (scrollTop + clientHeight >= scrollHeight) {
+        fileContentDiv.innerText += `第${++page}章 /n${chapters[page]}`
+      }
+    })
+    let menu_input = document.getElementById('menu_input')
+    let menu_input_font_size = document.getElementById('menu_input_font_size')
+
+    function debounce(func, delay) {
+      let timerId;
+      return function () {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timerId);
+        timerId = setTimeout(() => {
+          func.apply(context, args);
+        }, delay);
+      }
+    }
+    // 添加 input 事件监听器并绑定防抖函数
+    menu_input.addEventListener('input', debounce(function (e) {
+      page = parseInt(e.target.value);
+    }, 500));
+    menu_input_font_size.addEventListener('input', debounce(function (e) {
+      fileContentDiv.style.fontSize = e.target.value + 'px';
+    }, 500));
+    const fileInput = document.getElementById('file-input');
+    const init_tools = document.querySelector('.init_tools');
+
+    function handleFileSelect() {
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        localStorage.setItem('read_book_page', page)
+        const contents = event.target.result;
+        const regex = /第\d+章/g;
+        chapters = contents.split(regex);
+        localStorage.setItem('chapters', JSON.stringify(chapters))
+        init_tools.style.display = 'none'
+        fileContentDiv.innerText = `第${page}章/n` + chapters[page];
+      };
+      reader.readAsText(file);
+    }
+    window.onload = function () {
+      if (localStorage.getItem('chapters')) {
+        chapters = JSON.parse(localStorage.getItem('chapters'))
+        page = localStorage.getItem('read_book_page')
+        init_tools.style.display = 'none'
+        fileContentDiv.innerText = ''
+        setTimeout(() => {
+          fileContentDiv.innerText = `第${page}章/n` + chapters[page];
+        })
+      } else {
+        init_tools.style.display = 'block'
+      }
+    }
+  </script>
+</body>
+
+</html>
