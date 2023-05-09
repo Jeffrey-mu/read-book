@@ -22,7 +22,6 @@
 
   body {
     overflow-y: auto;
-    background: transparent;
   }
 
   #file-content {
@@ -48,9 +47,26 @@
     display: none;
   }
 
+  .drag {
+    height: 50px;
+    position: sticky;
+    top: 0;
+    border-radius: 25px;
+    width: 100px;
+    cursor: move;
+    border: 1px solid #ccc;
+  }
+
+  .drag:hover {
+    cursor: move;
+    background: #ccc;
+  }
 </style>
 
 <body oncontextmenu="return false;">
+  <div class="drag" style="-webkit-app-region: drag">
+
+  </div>
   <div class="menu" id="custom-menu">
     阅读章节
     <input class="menu_input" id="menu_input" type="number">
@@ -65,9 +81,10 @@
   <div id="file-content"></div>
   <script>
     let chapters = []
+    let flag = true
     const fileContentDiv = document.getElementById('file-content');
     let page = 1;
-    document.addEventListener('contextmenu', function (e) {
+    document.addEventListener('contextmenu', function(e) {
       e.preventDefault();
       // 添加卷起高度
       const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
@@ -77,18 +94,17 @@
       menu.style.top = scrollTop + e.clientY + 'px';
     });
 
-    document.addEventListener('click', function (e) {
-      console.log(e.target.className);
+    document.addEventListener('click', function(e) {
       if (['menu_input', 'menu'].includes(e.target.className)) return
       var menu = document.getElementById("custom-menu");
       menu.style.display = 'none';
     });
-    window.addEventListener('scroll', function () {
+    window.addEventListener('scroll', function() {
       const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
       const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
       const clientHeight = document.documentElement.clientHeight || window.innerHeight;
       localStorage.setItem('read_book_page', page)
-      if (scrollTop + clientHeight >= scrollHeight) {
+      if (scrollTop + clientHeight >= scrollHeight && flag) {
         fileContentDiv.innerText += `第${++page}章 /n${chapters[page]}`
       }
     })
@@ -97,7 +113,7 @@
 
     function debounce(func, delay) {
       let timerId;
-      return function () {
+      return function() {
         const context = this;
         const args = arguments;
         clearTimeout(timerId);
@@ -107,10 +123,17 @@
       }
     }
     // 添加 input 事件监听器并绑定防抖函数
-    menu_input.addEventListener('input', debounce(function (e) {
+    menu_input.addEventListener('input', debounce(function(e) {
       page = parseInt(e.target.value);
+      flag = false
+      fileContentDiv.innerText = ''
+      setTimeout(() => {
+        document.documentElement.scrollTop = 0
+        fileContentDiv.innerText = `第${page}章/n` + chapters[page];
+        flag = true
+      }, 200)
     }, 500));
-    menu_input_font_size.addEventListener('input', debounce(function (e) {
+    menu_input_font_size.addEventListener('input', debounce(function(e) {
       fileContentDiv.style.fontSize = e.target.value + 'px';
     }, 500));
     const fileInput = document.getElementById('file-input');
@@ -120,7 +143,7 @@
 
       const file = fileInput.files[0];
       const reader = new FileReader();
-      reader.onload = function (event) {
+      reader.onload = function(event) {
         localStorage.setItem('read_book_page', page)
         const contents = event.target.result;
         const regex = /第\d+章/g;
@@ -131,7 +154,7 @@
       };
       reader.readAsText(file);
     }
-    window.onload = function () {
+    window.onload = function() {
       if (localStorage.getItem('chapters')) {
         chapters = JSON.parse(localStorage.getItem('chapters'))
         page = localStorage.getItem('read_book_page')
