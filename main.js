@@ -4,17 +4,18 @@ const createWindow = () => {
   const win = new BrowserWindow({
     icon: './icon.png',
     width: 600,
-    height: 320,
+    height: 120,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
-    x: 0,
-    y: 0,
+    x: 100,
+    y: 100,
 
   })
 
   win.loadFile('index.html')
   win.setIcon('./icon.png')
+  win.setOpacity(1)
   // win.webContents.openDevTools({
   //   mode: 'detach'
   // });
