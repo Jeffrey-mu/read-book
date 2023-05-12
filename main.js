@@ -4,13 +4,12 @@ const createWindow = () => {
   const win = new BrowserWindow({
     icon: './icon.png',
     width: 300,
-    height: 60,
+    height: 70,
     transparent: true,
     frame: false,
     alwaysOnTop: true,
     x: 100,
     y: 100,
-
   })
 
   win.loadFile('index.html')
