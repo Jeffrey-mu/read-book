@@ -1,4 +1,5 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
+const path = require('path')
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -10,14 +11,17 @@ const createWindow = () => {
     alwaysOnTop: true,
     x: 100,
     y: 100,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js')
+    }
   })
 
   win.loadFile('index.html')
   win.setIcon('./icon.png')
   win.setOpacity(1)
-  // win.webContents.openDevTools({
-  //   mode: 'detach'
-  // });
+  win.webContents.openDevTools({
+    mode: 'detach'
+  });
 }
 
 app.whenReady().then(() => {
